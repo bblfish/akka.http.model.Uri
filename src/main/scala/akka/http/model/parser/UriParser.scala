@@ -7,6 +7,7 @@ package akka.http.model.parser
 import akka.scalajs._
 
 import org.parboiled2._
+import Parser.DeliveryScheme.Either
 import akka.http.model.Uri
 import Uri._
 
