@@ -385,7 +385,7 @@ object Uri {
     def apply(bytes: Array[Byte]): IPv6Host = Host(InetAddress.getByAddress(bytes).asInstanceOf[Inet6Address])
     def apply(bytes: immutable.Seq[Byte]): IPv6Host = apply(bytes.toArray)
 
-    private[http] def apply(bytes: String, address: String): IPv6Host = {
+    def apply(bytes: String, address: String): IPv6Host = {
       import CharUtils.{ hexValue ⇒ hex }
       require(bytes.length == 32, "`bytes` must be a 32 character hex string")
       apply(bytes.toCharArray.grouped(2).map(s ⇒ (hex(s(0)) * 16 + hex(s(1))).toByte).toArray, address)
@@ -791,6 +791,22 @@ object UriRendering {
     append(query)
   }
 
+
   private[http] def encode(r: Rendering, string: String, charset: Charset, keep: CharPredicate,
-                           replaceSpaces: Boolean = false): r.type = r ~~ akka.scalajs.encodeURIComponent(string)
+                           replaceSpaces: Boolean = false): r.type = {
+    @tailrec def rec(ix: Int = 0): r.type = {
+      def appendEncoded(byte: Char): Unit = r ~~  akka.scalajs.encodeURIComponent(byte.toString)
+      if (ix < string.length) {
+        string.charAt(ix) match {
+          case c if keep(c)         ⇒ r ~~ c
+          case ' ' if replaceSpaces ⇒ r ~~ '+'
+//          case c if c <= 127        ⇒ appendEncoded(c)
+          case c                    ⇒ appendEncoded(c)
+        }
+        rec(ix + 1)
+      } else r
+    }
+    rec()
+  }
+
 }

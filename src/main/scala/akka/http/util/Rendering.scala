@@ -281,24 +281,25 @@ private[http] class ByteArrayRendering(sizeHint: Int) extends Rendering {
 /**
  * INTERNAL API
  */
-private[http] class ByteStringRendering(sizeHint: Int) extends Rendering {
-  private[this] val builder = new ByteStringBuilder
-  builder.sizeHint(sizeHint)
-
-  def get: ByteString = builder.result
-
-  def ~~(char: Char): this.type = {
-    builder += char.toByte
-    this
-  }
-
-  def ~~(bytes: Array[Byte]): this.type = {
-    if (bytes.length > 0) builder.putByteArrayUnsafe(bytes)
-    this
-  }
-
-  def ~~(bytes: ByteString): this.type = {
-    if (bytes.length > 0) builder ++= bytes
-    this
-  }
-}
+// In ScalaJs we can't use ByteString rendering
+//private[http] class ByteStringRendering(sizeHint: Int) extends Rendering {
+//  private[this] val builder = new ByteStringBuilder
+//  builder.sizeHint(sizeHint)
+//
+//  def get: ByteString = builder.result
+//
+//  def ~~(char: Char): this.type = {
+//    builder += char.toByte
+//    this
+//  }
+//
+//  def ~~(bytes: Array[Byte]): this.type = {
+//    if (bytes.length > 0) builder.putByteArrayUnsafe(bytes)
+//    this
+//  }
+//
+//  def ~~(bytes: ByteString): this.type = {
+//    if (bytes.length > 0) builder ++= bytes
+//    this
+//  }
+//}

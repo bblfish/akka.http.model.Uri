@@ -585,6 +585,7 @@ object UriSpec extends TestSuite {
 
       'normalExamples {
         //todo: can't seem to compile the code below
+        //check issue https://github.com/lihaoyi/utest/issues/24
 //        assert( resolve("g:h") == "g:h")
 //        assert( resolve("g") == "http://a/b/c/g")
 //        assert( resolve("./g") == "http://a/b/c/g")
@@ -612,6 +613,7 @@ object UriSpec extends TestSuite {
 
       'abnormalExamples {
         //todo: Can't compile the code below
+        //check issue https://github.com/lihaoyi/utest/issues/24
 //        assert(resolve("../../../g") == "http://a/g")
 //        assert(resolve("../../../../g") == "http://a/g")
 //

@@ -10,3 +10,6 @@ libraryDependencies += "name.myltsev" %%% "parboiled" % "2.0.0"
 
 libraryDependencies +=  "org.scala-lang"  %  "scala-reflect"      % "2.11.1"   % "provided"
 
+libraryDependencies += "com.lihaoyi" %%% "utest" % "0.1.7" % "test"
+
+utest.jsrunner.Plugin.utestJsSettings
