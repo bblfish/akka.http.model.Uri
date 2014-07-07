@@ -48,7 +48,8 @@ lazy val browserTest = project.in(file("browserTest"))
   .settings(
   name := "http.model.Uri.browsertest",
   libraryDependencies += "org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.6",
-  libraryDependencies += "org.scala-lang.modules.scalajs" %%% "scalajs-jquery" % "0.6"
+  libraryDependencies += "org.scala-lang.modules.scalajs" %%% "scalajs-jquery" % "0.6",
+  libraryDependencies += "net.bblfish" %%% "node-scalajs" % "0.1"
 )
 
 lazy val cliTest = project.in(file("cliTest"))

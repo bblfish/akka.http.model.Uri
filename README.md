@@ -10,3 +10,4 @@ This project is made up of a few subprojects:
 
 To test the speed of the parsing you can try the file [links.zip](https://code.google.com/p/whalebot/downloads/detail?name=links.zip) which unzipped is 9.1MB and contains 226783 URLs . On my MacBookPro Retina this takes 37 seconds to parse in Chrome, and 1.453 seconds to parse in the pure scala cli.  
 
+In order to run the browser test suite you need to first build [node.scalajs](https://github.com/bblfish/node.scalajs) and make sure the [browserTest/speedTest.html](browserTest/speedTest.html) is pointing to the created bundle.js file which you create. I am looking for ways of automating that whole build. ( please contact me if you know how).
