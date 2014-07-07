@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>The Scala.js Tutorial</title>
+  </head>
+  <body>
+    <!-- Include Scala.js compiled code -->
+    <script type="text/javascript" src="../Uri/target/scala-2.11/http-model-uri-opt.js"></script>
+    <script type="text/javascript" src="./target/scala-2.11/http-model-uri-browsertest-opt.js"></script>
+    <script type="text/javascript" src="http://cdn.jsdelivr.net/jquery/2.1.1/jquery.js"></script>
+    <!-- Run tutorial.webapp.TutorialApp -->
+    <script type="text/javascript">
+        window.onload = function() {
+            var fileInput = document.getElementById('fileInput');
+            var fileDisplayArea = document.getElementById('fileDisplayArea');
+
+            fileInput.addEventListener('change', function(e) {
+                var file = fileInput.files[0];
+                var textType = /text.*/;
+
+                if (file.type.match(textType)) {
+                    var reader = new FileReader();
+
+                    reader.onload = function(e) {
+                        console.log("received text");
+                        var test = akka.http.model.SpeedTest();
+                        console.log(test)
+                        test.analyse(reader.result);
+                        console.log("done")
+                    }
+
+                    reader.readAsText(file);
+                } else {
+                    console.log("problem")
+                    fileDisplayArea.innerText = "File not supported!"
+                }
+            });
+        }
+
+    </script>
+    <div>
+        Select URL text file:
+        <input type="file" id="fileInput">
+    </div>
+    <p id="report">Waiting to parse URIS...</p>
+    <div>
+		<table id="UriDisplay">
+            <caption>Original URIs, parsing or exceptions</caption>
+            <thead><th>Original String</th><th>Parsed Uri or Error</th></thead>
+            <tbody>
+            <tr class="urlanalysis">
+                <td class="uriStr"></td>
+                <td class="answer"></td>
+            </tr>
+            </tbody>
+		</table>
+    </div>
+  </body>
+</html>
