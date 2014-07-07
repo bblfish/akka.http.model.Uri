@@ -36,3 +36,10 @@ lazy val browserTest = project.in(file("browserTest"))
   libraryDependencies += "org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.6",
   libraryDependencies += "org.scala-lang.modules.scalajs" %%% "scalajs-jquery" % "0.6"
 )
+
+lazy val cliTest = project.in(file("cliTest"))
+  .settings(commonSettings: _*)
+  .settings(
+    name := "http.model.Uri.cliTest",
+    libraryDependencies += "com.typesafe.akka" %% "akka-http-core-experimental" % "0.4"
+  )
