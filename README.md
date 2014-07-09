@@ -13,10 +13,11 @@ To test the speed of the parsing you can try the file [links.zip](https://code.g
 
  * 37 seconds to parse in Chrome 36.0.1985.97 beta using the akka Uri library ported to ScalaJS
  * 1.453 seconds to parse in the original Akka Uri library on a JVM
- * 4.226 seconds using the [node.js Url library](https://github.com/bblfish/node.scalajs)  in Chrome 36..
+ * 4.226 seconds using the [node.js Url library](https://github.com/bblfish/node.scalajs) wrapped in ScalaJS  in Chrome 36..
  * 4.4 secons to parse using the node.js Url library running in node itself
-  
  
 This suggests that parsing and canonicalisation of URLs should be done on the server, which should as much as possible send zipped and canonicalised [n-triples](http://www.w3.org/TR/n-triples/) files to the client. The client should then do as little as possible URI analysis - perhaps not more than removing #fragments. The client should stick as much as possible to simple string comparison.
 
 In order to run the browser test suite you need to first build [node.scalajs](https://github.com/bblfish/node.scalajs) and make sure the [browserTest/speedTest.html](browserTest/speedTest.html) is pointing to the created bundle.js file which you create. I am looking for ways of automating that whole build. ( please contact me if you know how).
+
+The ScalaJS team will be focusing on speed improvements for pure ScalaJS code next, so it will be interesting to see the improvements in the speed of the akka Uri class compiled with Scala JS.
