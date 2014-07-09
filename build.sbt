@@ -27,18 +27,13 @@ lazy val UriJS = project.in(file("akka.UriJS"))
     libraryDependencies += "org.scala-lang" % "scala-reflect" % "2.11.1" % "provided"
   )
 
-//lazy val NodeUriJS = project.in(file("node.Uri"))
-//  .settings(scalaJSSettings: _*)
-//  .settings(commonSettings: _*)
-//  .settings(
-//    name := "akka.UriJS",
-//    resolvers += "bintray-alexander_myltsev" at "http://dl.bintray.com/content/alexander-myltsev/maven",
-//    libraryDependencies += "name.myltsev" %%% "parboiled" % "2.0.0",
-//    libraryDependencies += "com.lihaoyi" %%% "utest" % "0.1.7" % "test",
-//    // to be removed as soon as parboiled issue is fixed
-//    // https://github.com/sirthias/parboiled2/issues/81
-//    libraryDependencies += "org.scala-lang" % "scala-reflect" % "2.11.1" % "provided"
-//  )
+lazy val NodeUriJS = project.in(file("node.Uri"))
+  .settings(scalaJSSettings: _*)
+  .settings(commonSettings: _*)
+  .settings(
+    name := "node.Uri",
+    ScalaJSKeys.jsDependencies += ProvidedJS / "node.uri.bundle.js"
+  )
 
 
 lazy val browserTest = project.in(file("browserTest"))
@@ -55,6 +50,16 @@ lazy val browserTest = project.in(file("browserTest"))
 lazy val cliTest = project.in(file("cliTest"))
   .settings(commonSettings: _*)
   .settings(
-    name := "http.model.Uri.cliTest",
+    name := "Uri.cliTest",
     libraryDependencies += "com.typesafe.akka" %% "akka-http-core-experimental" % "0.4"
+  )
+
+lazy val cliJSTest = project.in(file("cliJSTest"))
+  .settings(scalaJSSettings: _*)
+  .settings(commonSettings: _*)
+  .dependsOn(NodeUriJS)
+  .settings(
+    name := "Uri.cliJSTest",
+//    ScalaJSKeys.jsDependencies += ProvidedJS / "node..bundle.js",
+    skip in ScalaJSKeys.packageJSDependencies := false
   )
