@@ -3,9 +3,26 @@ import sbt.Keys._
 scalaJSSettings
 
 lazy val commonSettings = Seq(
-    organization := "net.bblfish",
-    scalaVersion := "2.11.1",
-    version := "0.1"
+  organization := "net.bblfish",
+  scalaVersion := "2.11.1",
+  version := "0.1",
+  description := "Akka's Uri ported to Scala",
+  licenses := Seq("Apache License, Version 2.0" -> url("http://opensource.org/licenses/Apache-2.0")),
+  homepage := Some(url("https://github.com/bblfish/akka.http.model.Uri")),
+  publishTo := {
+    //eg: export SBT_PROPS=-Dbanana.publish=bblfish.net:/home/hjs/htdocs/work/repo/
+    val nexus = "https://oss.sonatype.org/"
+    val other = Option(System.getProperty("banana.publish")).map(_.split(":"))
+    if (version.value.trim.endsWith("SNAPSHOT")) {
+      val repo = other.map(p => Resolver.ssh("banana.publish specified server", p(0), p(1) + "snapshots"))
+      repo.orElse(Some("snapshots" at nexus + "content/repositories/snapshots"))
+    } else {
+      val repo = other.map(p => Resolver.ssh("banana.publish specified server", p(0), p(1) + "releases"))
+      repo.orElse(Some("releases" at nexus + "service/local/staging/deploy/maven2"))
+    }
+  },
+  publishArtifact in Test := false,
+  pomIncludeRepository := { _ => false}
 )
 
 // only needed for speed test - should be moved to a different subproject
