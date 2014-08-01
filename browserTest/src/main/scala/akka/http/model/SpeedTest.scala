@@ -69,8 +69,7 @@ object SpeedTest  extends JSApp {
     jQuery("#report").text(s"It took ${end.getTime-start.getTime} milliseconds to process ${processed.length} uris")
     val tbody = jQuery("tbody")
     val trow = jQuery("#UriDisplay tbody tr:first").clone()
-    for (item<-processed) {
-      val (uriStr,parsing) = item
+    for ((uriStr,parsing)<-processed.slice(0,100)) {
       val row = trow.clone()
       row.find(".uriStr").text(uriStr)
       parsing match {

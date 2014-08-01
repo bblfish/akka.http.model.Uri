@@ -16,7 +16,7 @@ object cliJSTest extends JSApp {
   override
   def main(): Unit = {
     val fs = js.Dynamic.global.require("fs")
-    val file = "/Users/hjs/Downloads/Chrome/rl_links.txt"
+    val file = "rl_links.txt"
     val content: String = fs.readFileSync(file,js.Dynamic.literal(encoding="utf8")).asInstanceOf[String]
     val lines = content.split("\n")
     println("lines.length="+lines.length)
