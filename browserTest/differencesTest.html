@@ -1,8 +1,15 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="UTF-8">
-    <title>The Scala.js Tutorial</title>
+      <meta charset="UTF-8"/>
+      <title>The Scala.js Tutorial</title>
+      <style>
+
+          .uriStr {
+              word-wrap: break-word;
+              overflow-wrap: break-word;
+          }
+      </style>
   </head>
   <body>
     <!-- Include Scala.js compiled code -->
@@ -11,6 +18,7 @@
     <script type="text/javascript" src="../../node.scalajs/bundle.js"></script>
     <script type="text/javascript" src="http://cdn.jsdelivr.net/jquery/2.1.1/jquery.js"></script>
     <!-- Run tutorial.webapp.TutorialApp -->
+
     <script type="text/javascript">
         window.onload = function() {
             var fileInput = document.getElementById('fileInput');
@@ -27,7 +35,7 @@
                         console.log("received text");
                         var test = akka.http.test.SpeedTest();
                         console.log(test)
-                        test.analyse(reader.result);
+                        test.parsingDiffs(reader.result);
                         console.log("done")
                     }
 
@@ -44,20 +52,29 @@
         Select URL text file:
         <input type="file" id="fileInput">
     </div>
-    <select multiple="true" id="lib">
-        <option value="akka">Akka Uri</option>
-        <option value="java">Java Uri</option>
-        <option value="node">Node Uri</option>
-    </select>
     <p id="report">Waiting to parse URIS...</p>
     <div>
-		<table id="UriDisplay">
+		<table id="UriDisplay" border="2" style="table-layout:fixed; width: 100%;">
             <caption>Original URIs, parsing or exceptions</caption>
-            <thead><th>Original String</th><th>Parsed Uri or Error</th></thead>
+            <col style="width: 3%">
+            <col style="width: 30%;">
+            <col>
+            <thead>
+            <th>Line</th>
+            <th>Unparsed</th>
+            <th>Parsed Uri or Error</th>
+            </thead>
             <tbody>
             <tr class="urlanalysis">
+                <td class="line"></td>
                 <td class="uriStr"></td>
-                <td class="answer"></td>
+                <td class="answer">
+                    <dl class="parser">
+                        <dt>akka</dt><dd class="akka">parsed uri</dd>
+                        <dt>java</dt><dd class="java">parsed uri</dd>
+                        <dt>node</dt><dd class="node">parsed uri</dd>
+                    </dl>
+                </td>
             </tr>
             </tbody>
 		</table>
