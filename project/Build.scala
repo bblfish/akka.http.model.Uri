@@ -1,11 +1,10 @@
 import sbt.Keys._
 import sbt._
 
+import scala.scalajs.sbtplugin.ScalaJSPlugin.ScalaJSKeys._
 import scala.scalajs.sbtplugin.ScalaJSPlugin._
 
 object ScalajsReact extends Build {
-
-  scalaJSSettings
 
   type PE = Project => Project
 
@@ -60,6 +59,11 @@ object ScalajsReact extends Build {
       ScalaJSKeys.jsDependencies += ProvidedJS / "node.uri.bundle.js"
     )
 
+  def useReact(scope: String = "compile"): PE =
+    _.settings(
+      jsDependencies += "org.webjars" % "react" % "0.11.1" % scope / "react-with-addons.js" commonJSName "React",
+      skip in packageJSDependencies := false)
+
 
   lazy val browserTest = project.in(file("browserTest"))
     .configure(commonSettings)
@@ -67,13 +71,17 @@ object ScalajsReact extends Build {
     .dependsOn(UriJS)
     .settings(
       name := "http.model.Uri.browsertest",
-      libraryDependencies += "org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.6",
-      libraryDependencies += "org.scala-lang.modules.scalajs" %%% "scalajs-jquery" % "0.6",
-      libraryDependencies += "net.bblfish" %%% "node-scalajs" % "0.1",
-      //scalaz-react-js ( as I like to call it )
-      libraryDependencies += "com.github.japgolly.scalajs-react" %%% "core" % "0.4.0",
-      libraryDependencies += "com.github.japgolly.scalajs-react" %%% "test" % "0.4.0" % "test",
-      libraryDependencies += "com.github.japgolly.scalajs-react" %%% "ext-scalaz71" % "0.4.0"
+      skip in packageJSDependencies := false,
+      libraryDependencies ++= Seq(
+        "org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.6",
+        "org.scala-lang.modules.scalajs" %%% "scalajs-jquery" % "0.6",
+        "net.bblfish" %%% "node-scalajs" % "0.1",
+        //scalaz-react-js ( as I like to call it )
+        "com.scalatags" %%% "scalatags" % "0.3.5",
+        "com.github.japgolly.scalajs-react" %%% "core" % "0.4.0",
+        "com.github.japgolly.scalajs-react" %%% "test" % "0.4.0" % "test",
+        "com.github.japgolly.scalajs-react" %%% "ext-scalaz71" % "0.4.0"
+      )
     )
 
   lazy val cliTest = project.in(file("cliTest"))

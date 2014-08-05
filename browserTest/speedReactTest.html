@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Testing URI libraries</title>
+      <script type="text/javascript" src="../akka.UriJS/target/scala-2.11/akka-urijs-fastopt.js"></script>
+      <script type="text/javascript" src="../../node.scalajs/bundle.js"></script>
+      <script type="text/javascript" src="http://cdn.jsdelivr.net/jquery/2.1.1/jquery.js"></script>
+      <script type="text/javascript" src="./target/scala-2.11/http-model-uri-browsertest-jsdeps.js"></script>
+      <script type="text/javascript" src="./target/scala-2.11/http-model-uri-browsertest-fastopt.js"></script>
+  </head>
+  <body>
+    <!-- Include Scala.js compiled code -->
+    <!--div>
+        Select URL text file:
+        <input type="file" id="fileInput">
+    </div>
+    <select id="lib">
+        <option value="akka">Akka Uri</option>
+        <option value="java">Java Uri</option>
+        <option value="node">Node Uri</option>
+    </select>
+    <p id="report">Waiting to parse URIS...</p>
+    <div>
+		<table id="UriDisplay">
+            <caption>Original URIs, parsing or exceptions</caption>
+            <thead><th>Original String</th><th>Parsed Uri or Error</th></thead>
+            <tbody>
+            <tr class="urlanalysis">
+                <td class="uriStr"></td>
+                <td class="answer"></td>
+            </tr>
+            </tbody>
+		</table>
+    </div-->
+    <h3>JSX</h3>
+    <div id="eg1">jsx ver</div>
+    <script type="text/javascript">
+        akka.http.test.ScalaReactSpeedTest().main()
+    </script>
+  </body>
+</html>
