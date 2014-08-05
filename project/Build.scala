@@ -69,7 +69,7 @@ object ScalajsReact extends Build {
 
 
   lazy val browserTest = project.in(file("browserTest"))
-    .configure(commonSettings)
+    .configure(commonSettings,useReact())
     .settings(scalaJSSettingsPlus:_*)
     .dependsOn(UriJS)
     .settings(
