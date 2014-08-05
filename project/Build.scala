@@ -69,11 +69,12 @@ object ScalajsReact extends Build {
 
 
   lazy val browserTest = project.in(file("browserTest"))
-    .configure(commonSettings,useReact())
+    .configure(commonSettings)
     .settings(scalaJSSettingsPlus:_*)
     .dependsOn(UriJS)
     .settings(
       name := "http.model.Uri.browsertest",
+      jsDependencies += "org.webjars" % "react" % "0.11.1" / "react-with-addons.js" commonJSName "React",
       skip in packageJSDependencies := false,
       libraryDependencies ++= Seq(
         "org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.6",
@@ -84,7 +85,8 @@ object ScalajsReact extends Build {
         "com.github.japgolly.scalajs-react" %%% "core" % "0.4.0",
         "com.github.japgolly.scalajs-react" %%% "test" % "0.4.0" % "test",
         "com.github.japgolly.scalajs-react" %%% "ext-scalaz71" % "0.4.0"
-      )
+      ),
+      skip in packageJSDependencies := false
     )
 
   lazy val cliTest = project.in(file("cliTest"))
