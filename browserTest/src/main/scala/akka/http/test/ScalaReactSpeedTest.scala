@@ -11,7 +11,7 @@ import scala.scalajs.js
 /**
  * Created by hjs on 05/08/2014.
  */
-object ScalaReactSpeedTest extends js.JSApp{
+object ScalaReactSpeedTest extends js.JSApp {
   @js.annotation.JSExport
   override def main() = {
     example1(document getElementById "eg1")
