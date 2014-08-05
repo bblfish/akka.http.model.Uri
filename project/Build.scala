@@ -31,7 +31,10 @@ object ScalajsReact extends Build {
     pomIncludeRepository := { _ => false}
   )
 
-
+  //suggested that I add relativeSourceMaps see https://github.com/japgolly/scalajs-react/issues/14
+  lazy val scalaJSSettingsPlus = scalaJSSettings ++ Seq(
+    relativeSourceMaps := true
+  )
   // only needed for speed test - should be moved to a different subproject
 
   utest.jsrunner.Plugin.utestJsSettings
@@ -40,7 +43,7 @@ object ScalajsReact extends Build {
 
   lazy val UriJS = project.in(file("akka.UriJS"))
     .configure(commonSettings)
-    .settings(scalaJSSettings:_*)
+    .settings(scalaJSSettingsPlus:_*)
     .settings(
       name := "akka.UriJS",
       resolvers += "bintray-alexander_myltsev" at "http://dl.bintray.com/content/alexander-myltsev/maven",
@@ -53,7 +56,7 @@ object ScalajsReact extends Build {
 
   lazy val NodeUriJS = project.in(file("node.Uri"))
     .configure(commonSettings)
-    .settings(scalaJSSettings:_*)
+    .settings(scalaJSSettingsPlus:_*)
     .settings(
       name := "node.Uri",
       ScalaJSKeys.jsDependencies += ProvidedJS / "node.uri.bundle.js"
@@ -67,7 +70,7 @@ object ScalajsReact extends Build {
 
   lazy val browserTest = project.in(file("browserTest"))
     .configure(commonSettings)
-    .settings(scalaJSSettings:_*)
+    .settings(scalaJSSettingsPlus:_*)
     .dependsOn(UriJS)
     .settings(
       name := "http.model.Uri.browsertest",
@@ -93,7 +96,7 @@ object ScalajsReact extends Build {
 
   lazy val cliJSTest = project.in(file("cliJSTest"))
     .configure(commonSettings)
-    .settings(scalaJSSettings:_*)
+    .settings(scalaJSSettingsPlus:_*)
     .dependsOn(NodeUriJS)
     .settings(
       name := "Uri.cliJSTest",
