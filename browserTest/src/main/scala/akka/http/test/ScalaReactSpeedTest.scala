@@ -47,8 +47,10 @@ object ScalaReactSpeedTest extends js.JSApp {
       .render { (tab, S, B) =>
       def row(i: (Int,Int)) = tr(td("" + i._1),td(""+i._2))
       val seq = tab.rows
+      import syntax.std.tuple._
+      import poly._
       div(
-        table(thead(for (h<-tab.hdrs) yield th(h) ),tbody(for (r <- seq.slice(S.pointer, S.pointer + S.pageSize)) yield row(r))),
+        table(thead(tr(for (h <-tab.hdrs.toList) yield th(h) )),tbody(for (r <- seq.slice(S.pointer, S.pointer + S.pageSize)) yield row(r))),
         button(onclick --> B.prevPage())("previous"), button(onclick --> B.nextPage())("next")
       )
     }.create
