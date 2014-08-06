@@ -75,11 +75,12 @@ object ScalajsReact extends Build {
     .settings(
       name := "http.model.Uri.browsertest",
       jsDependencies += "org.webjars" % "react" % "0.11.1" / "react-with-addons.js" commonJSName "React",
-      skip in packageJSDependencies := false,
       libraryDependencies ++= Seq(
         "org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.6",
         "org.scala-lang.modules.scalajs" %%% "scalajs-jquery" % "0.6",
         "net.bblfish" %%% "node-scalajs" % "0.1",
+      //shapeless
+        "name.myltsev" %% "parboiled_sjs0.5" % "2.0.0" from ("http://dl.bintray.com/content/alexander-myltsev/maven"),
         //scalaz-react-js ( as I like to call it )
         "com.scalatags" %%% "scalatags" % "0.3.5",
         "com.github.japgolly.scalajs-react" %%% "core" % "0.4.0",
