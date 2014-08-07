@@ -5,6 +5,7 @@ import japgolly.scalajs.react.vdom.ReactVDom._
 import japgolly.scalajs.react.vdom.ReactVDom.all._
 import org.scalajs.dom.{Node, document}
 import shapeless._
+import shapeless.syntax.std.tuple._
 
 import scala.scalajs.js
 
@@ -28,11 +29,17 @@ object ScalaReactSpeedTest extends js.JSApp {
   }
 
   def example2(mountNode: Node) = {
-    import Table._
-    case class State(pointer: Int, pageSize: Int)
-    type HTable[T] = Table[(String,String),T]
+    val s = for (i <- (1 to 100 by 2)) yield Tuple2(i,i+1).productElements
+    val h = ("even","odd").productElements
 
-    class Backend(t: BackendScope[HTable[(Int,Int)], State]) {
+    React.renderComponent(TableView(h,s).create, mountNode)
+  }
+
+  case class TableView[H <: HList, R <: HList](h: H, s: Seq[R]) {
+
+    case class State(pointer: Int, pageSize: Int)
+
+    class Backend(t: BackendScope[Table[H, R], State]) {
       def prevPage() = t.modState(s => s.copy(pointer =
         Math.max(0, s.pointer - s.pageSize)
       ))
@@ -41,30 +48,36 @@ object ScalaReactSpeedTest extends js.JSApp {
         Math.min(s.pointer + s.pageSize, Math.max(0, t.props.rows.size - s.pageSize))))
     }
 
-    def TableView = ReactComponentB[HTable[(Int,Int)]]("TableView")
+    def tv = ReactComponentB[Table[H, R]]("TableView")
       .initialState(State(0, 10))
       .backend(new Backend(_))
-      .render { (tab, S, B) =>
-      def row(i: (Int,Int)) = tr(td("" + i._1),td(""+i._2))
+      .render(rendr _)
+
+    def rendr(tab: Table[H, R], S: State, B: Backend): japgolly.scalajs.react.vdom.ReactOutput = {
+      def row(r: R) = tr(for (e <- r.toList) yield td(s"$e"))
       val seq = tab.rows
-      import syntax.std.tuple._
-      import poly._
+
       div(
-        table(thead(tr(for (h <-tab.hdrs.toList) yield th(h) )),tbody(for (r <- seq.slice(S.pointer, S.pointer + S.pageSize)) yield row(r))),
+        table(
+          thead(tr(for (h <- tab.hdrs.toList) yield th(h.toString))),
+          tbody(for (r <- seq.slice(S.pointer, S.pointer + S.pageSize)) yield row(r))
+        ),
         button(onclick --> B.prevPage())("previous"), button(onclick --> B.nextPage())("next")
       )
-    }.create
+    }
 
-    val s = for (i <- (1 to 100 by 2)) yield Tuple2(i,i+1)
-    React.renderComponent(TableView(Table( ("even","odd"), s :_*)), mountNode)
+    def t = Table[H,R](h, s)
 
+    def create = tv.create(t)
   }
+
+
 }
 
-  case class Table[TH, TR](hdrs: TH, rows: TR*)
+class Table[TH, TR](val hdrs: TH, val rows: Seq[TR])
 
-  object Table {
-    def apply[TH, TR](hdrs: TH, rows: TR*)
+object Table {
+    def apply[TH, TR](hdrs: TH, rows: Seq[TR])
                      (implicit ts: TableShape[TH, TR]) = new Table(hdrs, rows)
 
     trait TableShape[TH, TR]
