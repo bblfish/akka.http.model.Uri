@@ -28,6 +28,12 @@ object ScalaReactSpeedTest extends js.JSApp {
     React.renderComponent(HelloMessage("John"), mountNode)
   }
 
+  /**
+   *  Trying to create a generic table viewer, that can show views of a given
+    * data structure, and later sort columns by clicking on the header.
+    * @param mountNode the html node to drop the table into
+    * @return
+    */
   def example2(mountNode: Node) = {
     val s = for (i <- (1 to 100 by 2)) yield Tuple2(i,i+1).productElements
     val h = ("even","odd").productElements
