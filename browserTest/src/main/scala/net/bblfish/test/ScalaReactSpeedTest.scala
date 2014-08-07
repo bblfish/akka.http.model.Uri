@@ -1,4 +1,4 @@
-package akka.http.test
+package net.bblfish.test
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.ReactVDom._
