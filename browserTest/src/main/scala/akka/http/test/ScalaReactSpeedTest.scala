@@ -74,6 +74,9 @@ object ScalaReactSpeedTest extends js.JSApp {
 
 }
 
+/**
+ * Table code taken from https://gist.github.com/milessabin/6814566
+ */
 class Table[TH, TR](val hdrs: TH, val rows: Seq[TR])
 
 object Table {
