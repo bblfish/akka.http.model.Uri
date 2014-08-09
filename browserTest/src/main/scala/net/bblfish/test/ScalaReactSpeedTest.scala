@@ -35,8 +35,8 @@ object ScalaReactSpeedTest extends js.JSApp {
     * @return
     */
   def example2(mountNode: Node) = {
-    val s = for (i <- (1 to 100 by 2)) yield Tuple2(i,i+1).productElements
-    val h = Tuple2("even","odd").productElements
+    val s = for (i <- (1 to 100 by 2)) yield Tuple2(i,i+1)
+    val h = Tuple2("even","odd")
 
     React.renderComponent(TableView(Table(h,s)).create, mountNode)
   }
@@ -81,10 +81,7 @@ object ScalaReactSpeedTest extends js.JSApp {
 }
 
 /**
- * It would be nice to use the Table from https://gist.github.com/milessabin/6814566
- * but I could not get it to work without producing a "diverging implicit expansion"
- * error ( see https://gist.github.com/anonymous/e653c54978d05f2a2501 )
- * ( at least not on more generic code )
+ * Code taken from https://gist.github.com/milessabin/6814566
  */
 class Table[TH, TR](val hdrs: TH, val rows: Seq[TR])
 
