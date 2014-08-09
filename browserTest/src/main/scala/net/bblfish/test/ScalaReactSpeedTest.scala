@@ -35,8 +35,8 @@ object ScalaReactSpeedTest extends js.JSApp {
     * @return
     */
   def example2(mountNode: Node) = {
-    val s = for (i <- (1 to 100 by 2)) yield Tuple2(i,i+1)
-    val h = Tuple2("even","odd")
+    val s = for (i <- (1 to 300 by 3)) yield Tuple3(i,i+1,i+2).productElements
+    val h = Tuple3("one","two","three").productElements
 
     React.renderComponent(TableView(Table(h,s)).create, mountNode)
   }
@@ -83,10 +83,10 @@ object ScalaReactSpeedTest extends js.JSApp {
 /**
  * Code taken from https://gist.github.com/milessabin/6814566
  */
-class Table[TH, TR](val hdrs: TH, val rows: Seq[TR])
+class Table[TH<:HList, TR<:HList](val hdrs: TH, val rows: Seq[TR])
 
 object Table {
-    def apply[TH, TR](hdrs: TH, rows: Seq[TR])
+    def apply[TH<:HList, TR<:HList](hdrs: TH, rows: Seq[TR])
                      (implicit ts: TableShape[TH, TR]) = new Table(hdrs, rows)
 
     trait TableShape[TH, TR]
@@ -94,8 +94,8 @@ object Table {
     object TableShape {
       implicit def productTableShape[TH, TR, LH, LR]
       (implicit
-       genH: Generic.Aux[TH, LH],
-       genR: Generic.Aux[TR, LR],
+//       genH: Generic.Aux[TH, LH],
+//       genR: Generic.Aux[TR, LR],
        hlistShape: TableShape[LH, LR]): TableShape[TH, TR] = new TableShape[TH, TR] {}
 
       implicit def hsingleTableShape[RH]: TableShape[String :: HNil, RH :: HNil] =

@@ -47,7 +47,7 @@ object ScalajsReact extends Build {
     .settings(
       name := "akka.UriJS",
       resolvers += "bintray-alexander_myltsev" at "http://dl.bintray.com/content/alexander-myltsev/maven",
-      libraryDependencies += "name.myltsev" %%% "parboiled" % "2.0.0",
+      libraryDependencies += "name.myltsev" %%% "parboiled" % "2.0.0",// from ("http://dl.bintray.com/content/alexander-myltsev/maven"),
       libraryDependencies += "com.lihaoyi" %%% "utest" % "0.1.7" % "test",
       // to be removed as soon as parboiled issue is fixed
       // https://github.com/sirthias/parboiled2/issues/81
@@ -80,7 +80,6 @@ object ScalajsReact extends Build {
         "org.scala-lang.modules.scalajs" %%% "scalajs-jquery" % "0.6",
         "net.bblfish" %%% "node-scalajs" % "0.1",
       //shapeless
-        "name.myltsev" %% "parboiled_sjs0.5" % "2.0.0" from ("http://dl.bintray.com/content/alexander-myltsev/maven"),
         //scalaz-react-js ( as I like to call it )
         "com.scalatags" %%% "scalatags" % "0.3.5",
         "com.github.japgolly.scalajs-react" %%% "core" % "0.4.0",
