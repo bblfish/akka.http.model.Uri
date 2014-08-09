@@ -43,9 +43,13 @@ object ScalaReactSpeedTest extends js.JSApp {
 
   case class TableView[H <: HList, R <: HList](tableData: Table[H,R]) {
 
-    case class State(pointer: Int, pageSize: Int)
+    case class State(pointer: Int, pageSize: Int, sortedRows: Option[Seq[R]] = None)
 
     class Backend(t: BackendScope[Table[H, R], State]) {
+      def sort[Elem<:Nat](lens: Lens[R, Elem]) = t.modState(_.copy(sortedRows=
+        Some(tableData.rows.sortBy(lens.get(_)))
+      ))
+
       def prevPage() = t.modState(s => s.copy(pointer =
         Math.max(0, s.pointer - s.pageSize)
       ))
@@ -62,7 +66,7 @@ object ScalaReactSpeedTest extends js.JSApp {
       val seq = tab.rows
 
       def header = {
-        tr(for (h <- tab.hdrs.toList) yield th(h.toString))
+        tr(for (ci <- 0 to tab.hdrs.runtimeLength) yield th(onclick --> B.sort(hlistNthLens[R,nat(ci)]))(tab.hdrs(ci).toString))
       }
       div(
         table(
