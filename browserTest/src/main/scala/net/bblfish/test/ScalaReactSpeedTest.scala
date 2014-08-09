@@ -36,12 +36,12 @@ object ScalaReactSpeedTest extends js.JSApp {
     */
   def example2(mountNode: Node) = {
     val s = for (i <- (1 to 100 by 2)) yield Tuple2(i,i+1).productElements
-    val h = ("even","odd").productElements
+    val h = Tuple2("even","odd").productElements
 
-    React.renderComponent(TableView(h,s).create, mountNode)
+    React.renderComponent(TableView(Table(h,s)).create, mountNode)
   }
 
-  case class TableView[H <: HList, R <: HList](h: H, s: Seq[R]) {
+  case class TableView[H <: HList, R <: HList](tableData: Table[H,R]) {
 
     case class State(pointer: Int, pageSize: Int)
 
@@ -54,34 +54,37 @@ object ScalaReactSpeedTest extends js.JSApp {
         Math.min(s.pointer + s.pageSize, Math.max(0, t.props.rows.size - s.pageSize))))
     }
 
-    def tv = ReactComponentB[Table[H, R]]("TableView")
+    def tableView = ReactComponentB[Table[H,R]]("TableView")
       .initialState(State(0, 10))
       .backend(new Backend(_))
-      .render(rendr _)
-
-    def rendr(tab: Table[H, R], S: State, B: Backend): japgolly.scalajs.react.vdom.ReactOutput = {
+      .render { (tab: Table[H,R], S: State, B: Backend) =>
       def row(r: R) = tr(for (e <- r.toList) yield td(s"$e"))
       val seq = tab.rows
 
+      def header = {
+        tr(for (h <- tab.hdrs.toList) yield th(h.toString))
+      }
       div(
         table(
-          thead(tr(for (h <- tab.hdrs.toList) yield th(h.toString))),
+          thead(header),
           tbody(for (r <- seq.slice(S.pointer, S.pointer + S.pageSize)) yield row(r))
         ),
         button(onclick --> B.prevPage())("previous"), button(onclick --> B.nextPage())("next")
       )
     }
 
-    def t = Table[H,R](h, s)
 
-    def create = tv.create(t)
+    def create = tableView.create(tableData)
   }
 
 
 }
 
 /**
- * Table code taken from https://gist.github.com/milessabin/6814566
+ * It would be nice to use the Table from https://gist.github.com/milessabin/6814566
+ * but I could not get it to work without producing a "diverging implicit expansion"
+ * error ( see https://gist.github.com/anonymous/e653c54978d05f2a2501 )
+ * ( at least not on more generic code )
  */
 class Table[TH, TR](val hdrs: TH, val rows: Seq[TR])
 
