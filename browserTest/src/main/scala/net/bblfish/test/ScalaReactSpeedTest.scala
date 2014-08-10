@@ -5,8 +5,10 @@ import japgolly.scalajs.react.vdom.ReactVDom._
 import japgolly.scalajs.react.vdom.ReactVDom.all._
 import org.scalajs.dom.{Node, document}
 import shapeless._
+import shapeless.ops.hlist.At
 import shapeless.syntax.std.tuple._
 
+import scala.math.Ordering
 import scala.scalajs.js
 
 
@@ -45,10 +47,12 @@ object ScalaReactSpeedTest extends js.JSApp {
 
     case class State(pointer: Int, pageSize: Int, sortedRows: Option[Seq[R]] = None)
 
+
     class Backend(t: BackendScope[Table[H, R], State]) {
-      def sort[Elem<:Nat](lens: Lens[R, Elem]) = t.modState(_.copy(sortedRows=
-        Some(tableData.rows.sortBy(lens.get(_)))
-      ))
+      def sort[Elem<:Nat](column: At[R, Elem])(implicit ord: Ordering[column.Out]) = t.modState(s=>
+        s.copy(sortedRows =
+          Some(tableData.rows.sortBy(r => column(r)))
+        ))
 
       def prevPage() = t.modState(s => s.copy(pointer =
         Math.max(0, s.pointer - s.pageSize)
@@ -66,11 +70,21 @@ object ScalaReactSpeedTest extends js.JSApp {
       val seq = tab.rows
 
       def header = {
-        tr(for (ci <- 0 to tab.hdrs.runtimeLength) yield th(onclick --> B.sort(hlistNthLens[R,nat(ci)]))(tab.hdrs(ci).toString))
+        import hlistaux._
+        val e = new myHListOps(tableData.rows.head).extractors
+        val hdrsAndFuncs = e.zip(tableData.hdrs)
+        import poly._
+
+        // The same definition of choose as above
+        object trans extends ((Function1,String) ~> TypedTag) {
+          def apply[T](st : (Function1,String)) = th(onclick --> B.sort(p=>st._1))(tab.hdrs(ci).toString))
+        }
+        hdrsAndFuncs map trans
+        //tr(for (ci <- 0 to tab.hdrs.runtimeLength) yield th(onclick --> B.sort(p=>p.at()))(tab.hdrs(ci).toString))
       }
       div(
         table(
-          thead(header),
+          thead(th("h"),header),
           tbody(for (r <- seq.slice(S.pointer, S.pointer + S.pageSize)) yield row(r))
         ),
         button(onclick --> B.prevPage())("previous"), button(onclick --> B.nextPage())("next")
@@ -82,6 +96,52 @@ object ScalaReactSpeedTest extends js.JSApp {
   }
 
 
+}
+
+import shapeless._
+import shapeless.ops.hlist.At
+import shapeless.syntax.std.tuple._
+
+final class myHListOps[H,L <: HList](l : H::L) {
+
+  import hlistaux._
+
+  def extractors(implicit extractor : Extractor[_0, H::L,H::L]) : extractor.Out = extractor()
+}
+
+object hlistaux {
+  trait Extractor[HF<:Nat, In <: HList, Remaining<: HList] extends DepFn0 { type Out <: HList }
+
+  object Extractor {
+    def apply[HL <: HList]
+    (implicit extractor: Extractor[_0, HL,HL]):
+       Aux[_0, HL, HL, extractor.Out] = extractor
+
+    type Aux[HF<:Nat, In <: HList, Remaining<: HList, Out0 <: HList] = Extractor[HF, In, Remaining] { type Out = Out0 }
+
+    implicit def hnilExtractor1[N<:Nat, In<:HList, H ]
+    (implicit att : At[In, N]): Aux[N, In, H::HNil, Function1[In,att.Out]::HNil] =
+      new Extractor[N, In, H::HNil] {
+        type Out = Function1[In,att.Out]::HNil
+        val f : Function1[In,att.Out] = (i: In) => att.apply(i)
+        def apply(): Out = f::HNil
+      }
+
+
+    implicit def hlistExtractor1[N <: Nat, In<:HList, H, Tail<: HList]
+    (implicit mt : Extractor[Succ[N], In, Tail],
+              att : At[In, N])
+    :Aux[N, In, H::Tail, Function1[In,att.Out]::mt.Out] = {
+      new Extractor[N, In, H::Tail] {
+        type Out = Function1[In,att.Out]::mt.Out
+
+        def apply(): Out = {
+          val f : Function1[In,att.Out] = (i: In) => att.apply(i)
+          f :: mt()
+        }
+      }
+    }
+  }
 }
 
 /**
