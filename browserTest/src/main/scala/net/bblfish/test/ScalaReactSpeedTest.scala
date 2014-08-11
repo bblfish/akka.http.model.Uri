@@ -5,6 +5,7 @@ import japgolly.scalajs.react.vdom.ReactVDom._
 import japgolly.scalajs.react.vdom.ReactVDom.all._
 import org.scalajs.dom.{Node, document}
 import shapeless._
+import shapeless.ops.hlist.Mapper
 import shapeless.syntax.std.tuple._
 
 import scala.math.Ordering
@@ -72,7 +73,7 @@ object ScalaReactSpeedTest extends js.JSApp {
       def header = {
         import net.bblfish.test.hlistaux._
 
-        val e = new myHListOps(tab.rows.head).extractors
+        val e = extractor.apply()
 //        import syntax.zipper._
 //        val hdrsAndFuncs = tableData.hdrs.zip(e)
         import shapeless.poly._
