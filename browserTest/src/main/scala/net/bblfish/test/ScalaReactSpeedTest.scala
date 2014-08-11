@@ -43,7 +43,8 @@ object ScalaReactSpeedTest extends js.JSApp {
     React.renderComponent(TableView(Table(h,s)).create, mountNode)
   }
 
-  case class TableView[H <: HList, R <: HList](tableData: Table[H,R]) {
+  case class TableView[H <: HList, R <: HList](tableData: Table[H,R])
+                                              (implicit extractor: hlistaux.Extractor[_0, R,R]) {
 
     case class State(pointer: Int, pageSize: Int, sortedRows: Option[Seq[R]] = None)
 
@@ -71,20 +72,23 @@ object ScalaReactSpeedTest extends js.JSApp {
 
       def header = {
         import hlistaux._
-        val e = new myHListOps(tableData.rows.head).extractors
-        val hdrsAndFuncs = e.zip(tableData.hdrs)
+        val e = new myHListOps(tab.rows.head).extractors
+//        import syntax.zipper._
+//        val hdrsAndFuncs = tableData.hdrs.zip(e)
         import poly._
-
+        type pointer[N<:Nat] = At[R,N]
+        val i = tab.hdrs.toList.iterator
         // The same definition of choose as above
-        object trans extends ((Function1,String) ~> TypedTag) {
-          def apply[T](st : (Function1,String)) = th(onclick --> B.sort(p=>st._1))(tab.hdrs(ci).toString))
+        object trans extends (pointer ~> TypedTag) {
+          def apply[N<:Nat](st : pointer[N])  =
+            th(onclick --> B.sort(st))(i.next().toString)
         }
-        hdrsAndFuncs map trans
+        e map trans
         //tr(for (ci <- 0 to tab.hdrs.runtimeLength) yield th(onclick --> B.sort(p=>p.at()))(tab.hdrs(ci).toString))
       }
       div(
         table(
-          thead(th("h"),header),
+          thead(th("h")),
           tbody(for (r <- seq.slice(S.pointer, S.pointer + S.pageSize)) yield row(r))
         ),
         button(onclick --> B.prevPage())("previous"), button(onclick --> B.nextPage())("next")
@@ -102,11 +106,11 @@ import shapeless._
 import shapeless.ops.hlist.At
 import shapeless.syntax.std.tuple._
 
-final class myHListOps[H,L <: HList](l : H::L) {
+final class myHListOps[L <: HList](l: L) {
 
   import hlistaux._
 
-  def extractors(implicit extractor : Extractor[_0, H::L,H::L]) : extractor.Out = extractor()
+  def extractors(implicit extractor : Extractor[_0, L,L]) : extractor.Out = extractor()
 }
 
 object hlistaux {
@@ -119,25 +123,30 @@ object hlistaux {
 
     type Aux[HF<:Nat, In <: HList, Remaining<: HList, Out0 <: HList] = Extractor[HF, In, Remaining] { type Out = Out0 }
 
-    implicit def hnilExtractor1[N<:Nat, In<:HList, H ]
-    (implicit att : At[In, N]): Aux[N, In, H::HNil, Function1[In,att.Out]::HNil] =
+    //To deal with case where HNil is passed. not sure if this is right.
+    implicit def hnilExtractor: Aux[_0, HNil, HNil, HNil] =
+      new Extractor[_0, HNil, HNil] {
+        type Out = HNil
+        def apply(): Out = HNil
+      }
+
+    implicit def hSingleExtractor1[N<:Nat, In<:HList, H ]
+    (implicit att : At[In, N]): Aux[N, In, H::HNil, At[In,N]::HNil] =
       new Extractor[N, In, H::HNil] {
-        type Out = Function1[In,att.Out]::HNil
-        val f : Function1[In,att.Out] = (i: In) => att.apply(i)
-        def apply(): Out = f::HNil
+        type Out = At[In,N]::HNil
+        def apply(): Out = att::HNil
       }
 
 
     implicit def hlistExtractor1[N <: Nat, In<:HList, H, Tail<: HList]
     (implicit mt : Extractor[Succ[N], In, Tail],
               att : At[In, N])
-    :Aux[N, In, H::Tail, Function1[In,att.Out]::mt.Out] = {
+    :Aux[N, In, H::Tail, At[In,N]::mt.Out] = {
       new Extractor[N, In, H::Tail] {
-        type Out = Function1[In,att.Out]::mt.Out
+        type Out = At[In,N]::mt.Out
 
         def apply(): Out = {
-          val f : Function1[In,att.Out] = (i: In) => att.apply(i)
-          f :: mt()
+          att :: mt()
         }
       }
     }
