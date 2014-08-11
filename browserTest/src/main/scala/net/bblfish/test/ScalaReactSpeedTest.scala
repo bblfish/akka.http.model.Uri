@@ -5,7 +5,6 @@ import japgolly.scalajs.react.vdom.ReactVDom._
 import japgolly.scalajs.react.vdom.ReactVDom.all._
 import org.scalajs.dom.{Node, document}
 import shapeless._
-import shapeless.ops.hlist.Mapper
 import shapeless.syntax.std.tuple._
 
 import scala.math.Ordering
@@ -77,7 +76,7 @@ object ScalaReactSpeedTest extends js.JSApp {
 //        import syntax.zipper._
 //        val hdrsAndFuncs = tableData.hdrs.zip(e)
         import shapeless.poly._
-        type result[O] = Result[R,O]
+        type result[O] = SelectNOrder[R,O]
         val i = tab.hdrs.toList.iterator
 
         object trans extends (result ~>> TypedTag[japgolly.scalajs.react.VDom]) {
@@ -117,7 +116,7 @@ final class myHListOps[L <: HList](l: L) {
 
 object hlistaux {
   trait Extractor[HF<:Nat, In <: HList, Remaining<: HList] extends DepFn0 { type Out <: HList }
-  case class Result[In <: HList, O](extract: Function1[In,O], ord: Ordering[O])
+  case class SelectNOrder[In <: HList, O](extract: Function1[In,O], ord: Ordering[O])
 
   object Extractor {
     def apply[HL <: HList]
@@ -134,10 +133,10 @@ object hlistaux {
       }
 
     implicit def hSingleExtractor1[N<:Nat, In<:HList, H ]
-    (implicit att : At.Aux[In, N,H], ordering: Ordering[H]): Aux[N, In, H::HNil, Result[In,H]::HNil] =
+    (implicit att : At.Aux[In, N,H], ordering: Ordering[H]): Aux[N, In, H::HNil, SelectNOrder[In,H]::HNil] =
       new Extractor[N, In, H::HNil] {
-        type Out = Result[In,H]::HNil
-        def apply(): Out = Result[In,H](att.apply(_),ordering)::HNil
+        type Out = SelectNOrder[In,H]::HNil
+        def apply(): Out = SelectNOrder[In,H](att.apply(_),ordering)::HNil
       }
 
 
@@ -145,12 +144,12 @@ object hlistaux {
     (implicit mt : Extractor[Succ[N], In, Tail],
         ordering: Ordering[H],
               att : At.Aux[In, N,H])
-    :Aux[N, In, H::Tail, Result[In,H]::mt.Out] = {
+    :Aux[N, In, H::Tail, SelectNOrder[In,H]::mt.Out] = {
       new Extractor[N, In, H::Tail] {
-        type Out = Result[In,H]::mt.Out
+        type Out = SelectNOrder[In,H]::mt.Out
 
         def apply(): Out = {
-          Result[In,H](att.apply(_),ordering):: mt()
+          SelectNOrder[In,H](att.apply(_),ordering):: mt()
         }
       }
     }
