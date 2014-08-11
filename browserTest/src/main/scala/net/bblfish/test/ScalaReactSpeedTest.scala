@@ -5,7 +5,6 @@ import japgolly.scalajs.react.vdom.ReactVDom._
 import japgolly.scalajs.react.vdom.ReactVDom.all._
 import org.scalajs.dom.{Node, document}
 import shapeless._
-import shapeless.ops.hlist.At
 import shapeless.syntax.std.tuple._
 
 import scala.math.Ordering
@@ -50,7 +49,7 @@ object ScalaReactSpeedTest extends js.JSApp {
 
 
     class Backend(t: BackendScope[Table[H, R], State]) {
-      def sort[Elem<:Nat](column: At[R, Elem])(implicit ord: Ordering[column.Out]) = t.modState(s=>
+      def sort[O](column: Function1[R,O])(implicit ord: Ordering[O]): Unit = t.modState(s=>
         s.copy(sortedRows =
           Some(tableData.rows.sortBy(r => column(r)))
         ))
@@ -71,24 +70,26 @@ object ScalaReactSpeedTest extends js.JSApp {
       val seq = tab.rows
 
       def header = {
-        import hlistaux._
+        import net.bblfish.test.hlistaux._
+
         val e = new myHListOps(tab.rows.head).extractors
 //        import syntax.zipper._
 //        val hdrsAndFuncs = tableData.hdrs.zip(e)
-        import poly._
-        type pointer[N<:Nat] = At[R,N]
+        import shapeless.poly._
+        type result[O] = Result[R,O]
         val i = tab.hdrs.toList.iterator
-        // The same definition of choose as above
-        object trans extends (pointer ~> TypedTag) {
-          def apply[N<:Nat](st : pointer[N])  =
-            th(onclick --> B.sort(st))(i.next().toString)
+
+        object trans extends (result ~>> TypedTag[japgolly.scalajs.react.VDom]) {
+          def apply[O](st : result[O]): TypedTag[japgolly.scalajs.react.VDom]  =
+            th(onclick --> B.sort(st.extract)(st.ord))(label(i.next().toString))
         }
-        e map trans
+
+        (e map trans).toList
         //tr(for (ci <- 0 to tab.hdrs.runtimeLength) yield th(onclick --> B.sort(p=>p.at()))(tab.hdrs(ci).toString))
       }
       div(
         table(
-          thead(th("h")),
+          thead(tr(header)),
           tbody(for (r <- seq.slice(S.pointer, S.pointer + S.pageSize)) yield row(r))
         ),
         button(onclick --> B.prevPage())("previous"), button(onclick --> B.nextPage())("next")
@@ -108,13 +109,14 @@ import shapeless.syntax.std.tuple._
 
 final class myHListOps[L <: HList](l: L) {
 
-  import hlistaux._
+  import net.bblfish.test.hlistaux._
 
   def extractors(implicit extractor : Extractor[_0, L,L]) : extractor.Out = extractor()
 }
 
 object hlistaux {
   trait Extractor[HF<:Nat, In <: HList, Remaining<: HList] extends DepFn0 { type Out <: HList }
+  case class Result[In <: HList, O](extract: Function1[In,O], ord: Ordering[O])
 
   object Extractor {
     def apply[HL <: HList]
@@ -131,22 +133,23 @@ object hlistaux {
       }
 
     implicit def hSingleExtractor1[N<:Nat, In<:HList, H ]
-    (implicit att : At[In, N]): Aux[N, In, H::HNil, At[In,N]::HNil] =
+    (implicit att : At.Aux[In, N,H], ordering: Ordering[H]): Aux[N, In, H::HNil, Result[In,H]::HNil] =
       new Extractor[N, In, H::HNil] {
-        type Out = At[In,N]::HNil
-        def apply(): Out = att::HNil
+        type Out = Result[In,H]::HNil
+        def apply(): Out = Result[In,H](att.apply(_),ordering)::HNil
       }
 
 
     implicit def hlistExtractor1[N <: Nat, In<:HList, H, Tail<: HList]
     (implicit mt : Extractor[Succ[N], In, Tail],
-              att : At[In, N])
-    :Aux[N, In, H::Tail, At[In,N]::mt.Out] = {
+        ordering: Ordering[H],
+              att : At.Aux[In, N,H])
+    :Aux[N, In, H::Tail, Result[In,H]::mt.Out] = {
       new Extractor[N, In, H::Tail] {
-        type Out = At[In,N]::mt.Out
+        type Out = Result[In,H]::mt.Out
 
         def apply(): Out = {
-          att :: mt()
+          Result[In,H](att.apply(_),ordering):: mt()
         }
       }
     }
