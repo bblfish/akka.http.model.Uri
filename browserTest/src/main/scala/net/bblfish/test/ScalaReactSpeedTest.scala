@@ -76,17 +76,16 @@ object ScalaReactSpeedTest extends js.JSApp {
 //        import syntax.zipper._
 //        val hdrsAndFuncs = tableData.hdrs.zip(e)
         import shapeless.poly._
-        type result[O] = SelectNOrder[R,O]
+        type select[O] = SelectNOrder[R,O]
         val i = tab.hdrs.toList.iterator
 
-        object trans extends (result ~>> TypedTag[japgolly.scalajs.react.VDom]) {
-          def apply[O](st : result[O]): TypedTag[japgolly.scalajs.react.VDom]  =
-            th(onclick --> B.sort(st.extract)(st.ord))(label(i.next().toString))
+        object trans extends (select ~>> TypedTag[japgolly.scalajs.react.VDom]) {
+          def apply[O](so : select[O]): TypedTag[japgolly.scalajs.react.VDom]  =
+            th(onclick --> B.sort(so.extractor)(so.ord))(label(i.next().toString))
         }
-
         (e map trans).toList
-        //tr(for (ci <- 0 to tab.hdrs.runtimeLength) yield th(onclick --> B.sort(p=>p.at()))(tab.hdrs(ci).toString))
       }
+
       div(
         table(
           thead(tr(header)),
@@ -116,7 +115,7 @@ final class myHListOps[L <: HList](l: L) {
 
 object hlistaux {
   trait Extractor[HF<:Nat, In <: HList, Remaining<: HList] extends DepFn0 { type Out <: HList }
-  case class SelectNOrder[In <: HList, O](extract: Function1[In,O], ord: Ordering[O])
+  case class SelectNOrder[In <: HList, O](extractor: Function1[In,O], ord: Ordering[O])
 
   object Extractor {
     def apply[HL <: HList]
