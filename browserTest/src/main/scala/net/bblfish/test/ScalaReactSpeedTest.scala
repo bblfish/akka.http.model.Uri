@@ -3,6 +3,7 @@ package net.bblfish.test
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.ReactVDom._
 import japgolly.scalajs.react.vdom.ReactVDom.all._
+import net.bblfish.test.hlistaux.SelectNOrder
 import org.scalajs.dom.{Node, document}
 import shapeless._
 import shapeless.syntax.std.tuple._
@@ -45,6 +46,10 @@ object ScalaReactSpeedTest extends js.JSApp {
   case class TableView[H <: HList, R <: HList](tableData: Table[H,R])
                                               (implicit extractor: hlistaux.Extractor[_0, R,R]) {
 
+    type select[O] = SelectNOrder[R,O]
+    val extractors = extractor.apply()
+
+
     case class State(pointer: Int, pageSize: Int, sortedRows: Option[Seq[R]] = None)
 
 
@@ -70,20 +75,15 @@ object ScalaReactSpeedTest extends js.JSApp {
       val seq = tab.rows
 
       def header = {
-        import net.bblfish.test.hlistaux._
-
-        val e = extractor.apply()
-//        import syntax.zipper._
 //        val hdrsAndFuncs = tableData.hdrs.zip(e)
         import shapeless.poly._
-        type select[O] = SelectNOrder[R,O]
         val i = tab.hdrs.toList.iterator
 
         object trans extends (select ~>> TypedTag[japgolly.scalajs.react.VDom]) {
           def apply[O](so : select[O]): TypedTag[japgolly.scalajs.react.VDom]  =
             th(onclick --> B.sort(so.extractor)(so.ord))(label(i.next().toString))
         }
-        (e map trans).toList
+        (extractors map trans).toList
       }
 
       div(
