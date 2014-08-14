@@ -1,5 +1,7 @@
 package net.bblfish.test
 
+import java.util.Date
+
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.ReactVDom._
 import japgolly.scalajs.react.vdom.ReactVDom.all._
@@ -36,9 +38,12 @@ object ScalaReactSpeedTest extends js.JSApp {
     * @return
     */
   def example2(mountNode: Node) = {
-
-    val s = (1 to 300).zipAll(('A' to 'z').reverse,0,'•').map(_.productElements)
-    val h = Tuple2("num","char").productElements
+    val now = System.currentTimeMillis()
+    val chars = ('A' to 'z').reverse
+    val s = for (n <- 1 to 300) yield {
+      (n, chars(n%chars.length), new Date(now-n*1000)).productElements
+    }
+    val h = ("num","char","date").productElements
 
     React.renderComponent(TableView(Table(h,s)).create, mountNode)
   }
@@ -90,7 +95,6 @@ object ScalaReactSpeedTest extends js.JSApp {
         button(onclick --> B.prevPage())("previous"), button(onclick --> B.nextPage())("next")
       )
     }
-
 
     def create = tableView.create(tableData)
   }
