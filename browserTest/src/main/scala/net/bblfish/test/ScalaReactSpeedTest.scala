@@ -3,7 +3,6 @@ package net.bblfish.test
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.ReactVDom._
 import japgolly.scalajs.react.vdom.ReactVDom.all._
-import net.bblfish.test.hlistaux.SelectNOrder
 import org.scalajs.dom.{Node, document}
 import shapeless._
 import shapeless.syntax.std.tuple._
@@ -37,27 +36,29 @@ object ScalaReactSpeedTest extends js.JSApp {
     * @return
     */
   def example2(mountNode: Node) = {
-    val s = for (i <- (1 to 300 by 3)) yield Tuple3(i,i+1,i+2).productElements
-    val h = Tuple3("one","two","three").productElements
+
+    val s = (1 to 300).zipAll(('A' to 'z').reverse,0,'•').map(_.productElements)
+    val h = Tuple2("num","char").productElements
 
     React.renderComponent(TableView(Table(h,s)).create, mountNode)
   }
 
   case class TableView[H <: HList, R <: HList](tableData: Table[H,R])
-                                              (implicit extractor: hlistaux.Extractor[_0, R,R]) {
-
-    type select[O] = SelectNOrder[R,O]
-    val extractors = extractor.apply()
+                                              (implicit extractr: hlistaux.Extractor[_0, R,R]) {
 
 
-    case class State(pointer: Int, pageSize: Int, sortedRows: Option[Seq[R]] = None)
+    case class State(pointer: Int, pageSize: Int, sortedRows: Seq[R])
 
 
     class Backend(t: BackendScope[Table[H, R], State]) {
-      def sort[O](column: Function1[R,O])(implicit ord: Ordering[O]): Unit = t.modState(s=>
-        s.copy(sortedRows =
-          Some(tableData.rows.sortBy(r => column(r)))
-        ))
+      def sort[O](sort: hlistaux.Sorter[R]): Unit =
+        t.modState { s =>
+          val sorted = sort(tableData.rows)
+          val pointed = s.sortedRows(s.pointer)
+          val i = sorted.indexOf(pointed)
+          s.copy(sortedRows = sorted,pointer=i)
+        }
+
 
       def prevPage() = t.modState(s => s.copy(pointer =
         Math.max(0, s.pointer - s.pageSize)
@@ -68,22 +69,17 @@ object ScalaReactSpeedTest extends js.JSApp {
     }
 
     def tableView = ReactComponentB[Table[H,R]]("TableView")
-      .initialState(State(0, 10))
+      .initialState(State(0, 10,tableData.rows))
       .backend(new Backend(_))
       .render { (tab: Table[H,R], S: State, B: Backend) =>
       def row(r: R) = tr(for (e <- r.toList) yield td(s"$e"))
-      val seq = tab.rows
+      val seq = S.sortedRows
 
       def header = {
 //        val hdrsAndFuncs = tableData.hdrs.zip(e)
-        import shapeless.poly._
-        val i = tab.hdrs.toList.iterator
-
-        object trans extends (select ~>> TypedTag[japgolly.scalajs.react.VDom]) {
-          def apply[O](so : select[O]): TypedTag[japgolly.scalajs.react.VDom]  =
-            th(onclick --> B.sort(so.extractor)(so.ord))(label(i.next().toString))
-        }
-        (extractors map trans).toList
+        val it = tableData.hdrs.toList.toIterator
+        for (e <- extractr())
+        yield  th(onclick --> B.sort(e))(label(it.next().toString))
       }
 
       div(
@@ -114,28 +110,31 @@ final class myHListOps[L <: HList](l: L) {
 }
 
 object hlistaux {
-  trait Extractor[HF<:Nat, In <: HList, Remaining<: HList] extends DepFn0 { type Out <: HList }
-  case class SelectNOrder[In <: HList, O](extractor: Function1[In,O], ord: Ordering[O])
+  type Sorter[R] = Seq[R] => Seq[R]
 
+  trait Extractor[HF<:Nat, In <: HList, Remaining<: HList] extends DepFn0 { type Out <: List[Sorter[In]] }
+
+  def sort[R<:HList,O,N<:Nat](att: At.Aux[R,N,O], ord: Ordering[O]): Sorter[R] = (hlists: Seq[R]) => hlists.sortBy(att(_))(ord)
   object Extractor {
     def apply[HL <: HList]
     (implicit extractor: Extractor[_0, HL,HL]):
        Aux[_0, HL, HL, extractor.Out] = extractor
 
-    type Aux[HF<:Nat, In <: HList, Remaining<: HList, Out0 <: HList] = Extractor[HF, In, Remaining] { type Out = Out0 }
+    type Aux[HF<:Nat, In <: HList, Remaining<: HList, Out0 <: List[Sorter[In]]] =
+        Extractor[HF, In, Remaining] { type Out = Out0 }
 
     //To deal with case where HNil is passed. not sure if this is right.
-    implicit def hnilExtractor: Aux[_0, HNil, HNil, HNil] =
+    implicit def hnilExtractor: Aux[_0, HNil, HNil, List[Nothing]] =
       new Extractor[_0, HNil, HNil] {
-        type Out = HNil
-        def apply(): Out = HNil
+        type Out = List[Nothing]
+        def apply(): Out = Nil
       }
 
     implicit def hSingleExtractor1[N<:Nat, In<:HList, H ]
-    (implicit att : At.Aux[In, N,H], ordering: Ordering[H]): Aux[N, In, H::HNil, SelectNOrder[In,H]::HNil] =
+    (implicit att : At.Aux[In, N,H], ordering: Ordering[H]): Aux[N, In, H::HNil, List[Sorter[In]]] =
       new Extractor[N, In, H::HNil] {
-        type Out = SelectNOrder[In,H]::HNil
-        def apply(): Out = SelectNOrder[In,H](att.apply(_),ordering)::HNil
+        type Out = List[Sorter[In]]
+        def apply(): Out = List(sort(att,ordering))
       }
 
 
@@ -143,13 +142,10 @@ object hlistaux {
     (implicit mt : Extractor[Succ[N], In, Tail],
         ordering: Ordering[H],
               att : At.Aux[In, N,H])
-    :Aux[N, In, H::Tail, SelectNOrder[In,H]::mt.Out] = {
+    :Aux[N, In, H::Tail, List[Sorter[In]]] = {
       new Extractor[N, In, H::Tail] {
-        type Out = SelectNOrder[In,H]::mt.Out
-
-        def apply(): Out = {
-          SelectNOrder[In,H](att.apply(_),ordering):: mt()
-        }
+        type Out = List[Sorter[In]]
+        def apply(): Out = sort(att,ordering)::mt()
       }
     }
   }
@@ -169,8 +165,8 @@ object Table {
     object TableShape {
       implicit def productTableShape[TH, TR, LH, LR]
       (implicit
-//       genH: Generic.Aux[TH, LH],
-//       genR: Generic.Aux[TR, LR],
+       genH: Generic.Aux[TH, LH],
+       genR: Generic.Aux[TR, LR],
        hlistShape: TableShape[LH, LR]): TableShape[TH, TR] = new TableShape[TH, TR] {}
 
       implicit def hsingleTableShape[RH]: TableShape[String :: HNil, RH :: HNil] =
