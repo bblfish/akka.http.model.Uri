@@ -60,7 +60,7 @@ object ScalaReactSpeedTest extends js.JSApp {
         t.modState { s =>
           val sorted = sort(tableData.rows)
           val pointed = s.sortedRows(s.pointer)
-          val i = sorted.indexOf(pointed)
+          val i = sorted.indexWhere(_ eq pointed) // find object ref equality
           s.copy(sortedRows = sorted,pointer=i)
         }
 
@@ -82,6 +82,7 @@ object ScalaReactSpeedTest extends js.JSApp {
 
       def header = {
 //        val hdrsAndFuncs = tableData.hdrs.zip(e)
+        // can't use zip for some reason, so need to use this horrible injection of an iterable
         val it = tableData.hdrs.toList.toIterator
         for (e <- extractr())
         yield  th(onclick --> B.sort(e))(label(it.next().toString))
